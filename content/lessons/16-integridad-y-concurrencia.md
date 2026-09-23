@@ -40,7 +40,7 @@ UserEmailAlreadyExists
 HTTP 409
 ```
 
-No deberíamos exponer `SQLSTATE[23000]` al consumidor de la API. Ya tienes `UserEmailAlreadyExists` de la lección de [manejo de errores](/lecciones/manejo-de-errores) y ya mapea a `409` en el subscriber — lo único que falta es capturar la excepción de Doctrine en el adaptador y traducirla, para que da igual si el duplicado lo detectó `findByEmail()` de antemano o la propia base de datos al insertar:
+No deberíamos exponer `SQLSTATE[23000]` al consumidor de la API. Ya tienes `UserEmailAlreadyExists` de la lección de [manejo de errores](/lecciones/manejo-de-errores) y ya mapea a `409` en el subscriber — lo único que falta es capturar la excepción de Doctrine y traducirla. Actualiza el método `save()` de `DoctrineUserRepository` (`src/User/Infrastructure/Persistence/Doctrine/Repository/DoctrineUserRepository.php`, de la lección de [Persistencia con Doctrine](/lecciones/infraestructura-doctrine)) para que quede así, agregando los dos `use` que faltan al inicio del archivo:
 
 ```php
 use App\User\Domain\Exception\UserEmailAlreadyExists;

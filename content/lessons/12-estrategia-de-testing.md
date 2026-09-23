@@ -193,6 +193,8 @@ No te quedes solamente con `save + find`. Prueba:
 
 **Opción 1: limpiar tablas** (proyecto pequeño)
 
+Agrega esto a la misma clase `DoctrineUserRepositoryTest` de arriba, reemplazando su `setUp()`:
+
 ```php
 protected function cleanDatabase(): void
 {

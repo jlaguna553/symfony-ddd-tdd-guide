@@ -11,6 +11,7 @@ objectives:
 newFiles:
   - "src/User/Infrastructure/Http/Exception/ApiExceptionSubscriber.php"
   - "src/User/Domain/Exception/UserEmailAlreadyExists.php"
+  - "tests/Functional/User/ApiExceptionSubscriberTest.php"
 ---
 
 ### Códigos HTTP
@@ -100,24 +101,35 @@ final class ApiExceptionSubscriber implements EventSubscriberInterface
 
 No hace falta registrar esta clase a mano en `services.yaml`. Symfony autoconfigura cualquier servicio que implemente `EventSubscriberInterface` siempre que esté en `src/` y el `services.yaml` por defecto del skeleton tenga `autoconfigure: true` (lo trae así desde que instalaste `symfony/skeleton` en el [setup inicial](/lecciones/setup-inicial)). Si después de crear el archivo los errores siguen devolviendo la página de excepción de Symfony en vez del JSON, corre `php bin/console debug:container ApiExceptionSubscriber` para confirmar que el servicio existe y está etiquetado como `kernel.event_subscriber`.
 
-Compruébalo con un test rápido, sin esperar a la lección de Functional Tests:
+Compruébalo con un test rápido, sin esperar a la lección de Functional Tests. Es un archivo nuevo, propio de esta lección:
+
+`tests/Functional/User/ApiExceptionSubscriberTest.php`
 
 ```php
-public function testInvalidIdReturnsBadRequestWithTheErrorContract(): void
+<?php
+
+namespace App\Tests\Functional\User;
+
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+
+final class ApiExceptionSubscriberTest extends WebTestCase
 {
-    $client = static::createClient();
+    public function testInvalidIdReturnsBadRequestWithTheErrorContract(): void
+    {
+        $client = static::createClient();
 
-    $client->request('GET', '/api/users/not-a-uuid');
+        $client->request('GET', '/api/users/not-a-uuid');
 
-    self::assertResponseStatusCodeSame(400);
+        self::assertResponseStatusCodeSame(400);
 
-    $body = json_decode($client->getResponse()->getContent(), true);
+        $body = json_decode($client->getResponse()->getContent(), true);
 
-    self::assertSame('INVALID_ARGUMENT', $body['error']['code']);
+        self::assertSame('INVALID_ARGUMENT', $body['error']['code']);
+    }
 }
 ```
 
-Sin el subscriber, este test falla con un `500` y una página HTML de error en vez de JSON. Con él, falla en `400` con el contrato correcto — ese es tu GREEN para esta lección.
+Corre `APP_ENV=test php bin/phpunit tests/Functional/User/ApiExceptionSubscriberTest.php`. Sin el subscriber, este test falla con un `500` y una página HTML de error en vez de JSON. Con él, falla en `400` con el contrato correcto — ese es tu GREEN para esta lección. (En la lección de [Functional Tests](/lecciones/functional-tests) vas a organizar más casos como este junto a los de cada controller — este archivo suelto es solo para verificar el subscriber ahora mismo, sin esperar a esa organización.)
 
 ### Mejora: excepciones específicas
 
