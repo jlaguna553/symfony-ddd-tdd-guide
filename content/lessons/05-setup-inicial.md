@@ -3,8 +3,11 @@ slug: "setup-inicial"
 order: 5
 module: "arranque"
 title: "Setup inicial: Symfony, MySQL y la estructura DDD"
-summary: "Creamos Symfony desde cero, conectamos MySQL y generamos el esqueleto de carpetas vacío. Primer avance real del proyecto."
+summary: "Antes de instalar nada, verificamos que PHP, Composer y MySQL ya estén en tu máquina. Después creamos Symfony, conectamos MySQL y generamos el esqueleto de carpetas vacío."
 objectives:
+  - "Verificar que PHP, Composer y MySQL están instalados y en una versión compatible, antes de escribir un solo comando del proyecto."
+  - "Entender qué hace composer require/install y para qué sirven composer.json y composer.lock."
+  - "Saber entrar a la consola de MySQL y ejecutar SQL desde ahí, no solo copiar el bloque de código."
   - "Instalar un proyecto Symfony nuevo con las dependencias que vamos a necesitar."
   - "Configurar la conexión a MySQL en desarrollo."
   - "Generar la estructura de carpetas DDD vacía, lista para recibir código."
@@ -44,6 +47,51 @@ newFiles:
   - "tests/Double/User/"
 ---
 
+### Antes de empezar: verifica tu entorno
+
+Todo lo que sigue asume tres herramientas ya instaladas en tu máquina: **PHP**, **Composer** y **MySQL**. Antes de copiar el primer comando, confirma que las tienes — es más rápido resolverlo ahora que a mitad de un error críptico tres pasos más adelante.
+
+**PHP.** Necesitas **8.2 o superior** — no es un capricho de versión: las clases `readonly` que vamos a usar desde la lección de [Capa de Dominio](/lecciones/capa-de-dominio) en adelante son una sintaxis de PHP 8.2, y el proyecto simplemente no arranca con una versión menor.
+
+```bash
+php -v
+```
+
+```
+PHP 8.3.6 (cli) (built: ...)
+```
+
+Si el comando no existe o la versión es menor a 8.2, instala PHP desde [php.net/downloads](https://www.php.net/downloads) o con el gestor de paquetes de tu sistema (`apt`, `brew`, `dnf`, etc. según corresponda).
+
+**Composer.** Es el gestor de dependencias de PHP — lo vamos a usar en casi cada lección de aquí en adelante.
+
+```bash
+composer -V
+```
+
+```
+Composer version 2.7.x
+```
+
+Si no aparece, instálalo desde [getcomposer.org/download](https://getcomposer.org/download/) — el sitio oficial trae un script de instalación de una línea para Linux/macOS y un instalador gráfico para Windows.
+
+**MySQL.** Necesitas un servidor MySQL corriendo y accesible, no solo el cliente de línea de comandos.
+
+```bash
+mysql --version
+mysqladmin ping
+```
+
+La primera confirma que el *cliente* `mysql` está instalado; la segunda confirma que hay un *servidor* escuchando y respondiendo (debería imprimir `mysqld is alive`). Puedes tener el cliente instalado y aun así no tener ningún servidor corriendo — son dos cosas distintas y ambas hacen falta.
+
+Si no tienes MySQL instalado localmente, no hace falta que lo instales todavía: en la lección de [DevOps](/lecciones/devops-docker-ci) vas a levantar MySQL con Docker Compose. Si prefieres adelantar eso ahora en vez de instalar MySQL directamente en tu máquina, puedes correr únicamente el servicio de base de datos:
+
+```bash
+docker run --name ddd-mysql -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 -d mysql:8
+```
+
+Cualquiera de los dos caminos —MySQL instalado localmente o corriendo en un contenedor— te deja en el mismo punto: un servidor accesible en `127.0.0.1:3306`, que es lo único que el resto de esta lección necesita.
+
 ### Crear Symfony desde cero
 
 Partimos de una carpeta vacía:
@@ -77,6 +125,17 @@ php bin/console about
 php bin/phpunit
 ```
 
+#### ¿Qué hace exactamente `composer require`?
+
+Vas a escribir `composer require` decenas de veces en esta guía, así que vale la pena saber qué hace realmente:
+
+- **`composer require paquete/nombre`** descarga el paquete y lo agrega como dependencia de **producción** en `composer.json` — algo que tu aplicación necesita para funcionar (Doctrine, el propio Symfony).
+- **`composer require --dev paquete/nombre`** hace lo mismo pero lo marca como dependencia de **desarrollo** — herramientas que necesitas mientras programas pero que no deberían viajar a producción (PHPUnit vía `test-pack`, el `maker-bundle`, más adelante PHPStan y PHP-CS-Fixer).
+- **`composer.json`** es el archivo que declara *qué* necesitas, con rangos de versión flexibles (`^7.0`, por ejemplo).
+- **`composer.lock`**, que Composer genera y actualiza automáticamente, congela las versiones *exactas* que se instalaron — es lo que garantiza que tú, tu compañero de equipo y el pipeline de CI instalen exactamente los mismos paquetes, no solo "algo compatible con `^7.0`".
+- **`composer install`** (sin argumentos) no agrega nada nuevo: instala exactamente lo que dice `composer.lock`. Es el comando que vas a usar en CI, en la lección de [DevOps](/lecciones/devops-docker-ci) — nunca `composer require` ahí, porque no estás agregando una dependencia nueva, estás reproduciendo las que ya existen.
+- **`vendor/`** es la carpeta donde Composer descarga el código de cada paquete. Nunca se versiona en Git (ya viene en el `.gitignore` del skeleton) porque se reconstruye por completo con `composer install`.
+
 ### Configurar MySQL
 
 Crear la base:
@@ -87,17 +146,51 @@ CHARACTER SET utf8mb4
 COLLATE utf8mb4_unicode_ci;
 ```
 
+Ese bloque es SQL, no un comando de terminal — necesitas ejecutarlo *dentro* de una consola de MySQL. Si nunca entraste a una, así se hace:
+
+```bash
+mysql -u root -p
+```
+
+Te va a pedir la contraseña de `root` y, si es correcta, tu prompt cambia a algo como:
+
+```
+mysql>
+```
+
+Ahí dentro, pega el bloque `CREATE DATABASE` de arriba (termina en `;`) y presiona enter. Confirma que se creó:
+
+```sql
+SHOW DATABASES;
+```
+
+Deberías ver `ddd_symfony` en la lista. Para salir de la consola: `exit` o `\q`.
+
+Si prefieres no entrar a un modo interactivo, el mismo resultado se logra en una sola línea desde tu terminal normal:
+
+```bash
+mysql -u root -p -e "CREATE DATABASE ddd_symfony CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+(Si levantaste MySQL con el `docker run` de la sección anterior, la contraseña de `root` es `password` y no necesitas el flag `-p` interactivo: `mysql -h 127.0.0.1 -u root -ppassword -e "..."`.)
+
+Un cliente gráfico (TablePlus, DBeaver, MySQL Workbench, la extensión de MySQL de tu editor) funciona exactamente igual y es una alternativa perfectamente válida si te sientes más cómodo ahí — lo único que importa es que la base de datos `ddd_symfony` termine existiendo.
+
 En `.env`:
 
 ```
 DATABASE_URL="mysql://root:password@127.0.0.1:3306/ddd_symfony?serverVersion=8.0&charset=utf8mb4"
 ```
 
-Probar conexión:
+Ajusta usuario, contraseña y puerto a los de tu instalación real si son distintos.
+
+Probar conexión, esta vez desde el propio Symfony:
 
 ```bash
 php bin/console doctrine:query:sql "SELECT 1"
 ```
+
+Si esto devuelve un resultado en vez de un error de conexión, Symfony y MySQL ya se están hablando — puedes seguir.
 
 ### Crear estructura DDD
 
