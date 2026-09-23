@@ -6,6 +6,7 @@ title: "DevOps: Docker, CI/CD y Architecture as Code"
 summary: "Contenerizamos el proyecto, definimos el pipeline de CI y convertimos los límites arquitectónicos en reglas ejecutables con Deptrac."
 objectives:
   - "Levantar PHP, Nginx y MySQL con Docker Compose."
+  - "Migrar del MySQL local que usaste desde el setup inicial al MySQL en contenedor, sin perder el hilo de lo que ya funcionaba."
   - "Definir un pipeline de CI que corra lint, las cuatro capas de tests y static analysis en orden."
   - "Usar Deptrac para que el CI rechace automáticamente violaciones de arquitectura, no solo un code review."
 newFiles:
@@ -57,6 +58,55 @@ services:
 ```
 
 Para producción hay que usar una estrategia diferente de filesystem, secrets, networking, imágenes inmutables, etc.
+
+### Migrar de MySQL local a MySQL en Docker
+
+Desde el [setup inicial](/lecciones/setup-inicial) has estado trabajando contra un MySQL instalado directamente en tu máquina. Ese MySQL nunca deja de funcionar — pero a partir de ahora el proyecto va a hablar con el `mysql` de `compose.yaml`, no con él. Son dos servidores distintos, y moverte de uno a otro tiene tres fricciones concretas que conviene resolver en orden.
+
+**1. El puerto `3306` ya está ocupado.** `compose.yaml` mapea `3306:3306` en tu máquina, pero tu MySQL local ya está escuchando ahí desde la lección 5. `docker compose up` va a fallar con `port is already allocated`. Antes de levantarlo, detén el servicio local:
+
+```bash
+# macOS
+brew services stop mysql
+
+# Ubuntu/Debian
+sudo systemctl stop mysql
+```
+
+(Si prefieres no tocar tu MySQL local, la alternativa es cambiar el mapeo a `"3307:3306"` en `compose.yaml` y ajustar el puerto en la `DATABASE_URL` del siguiente paso. Cualquiera de los dos funciona; detener el servicio local es lo más simple mientras trabajas en este proyecto.)
+
+**2. El host de conexión cambia.** Tu `.env` apunta a `127.0.0.1`, que tiene sentido cuando PHP corre directamente en tu máquina. Pero dentro de `compose.yaml`, el contenedor `php` no tiene un `127.0.0.1` propio compartido con MySQL — Docker Compose resuelve el nombre del *servicio* (`mysql`) como si fuera un hostname. Actualiza `.env`:
+
+```
+DATABASE_URL="mysql://root:password@mysql:3306/ddd_symfony?serverVersion=8.0&charset=utf8mb4"
+```
+
+Solo cambió el host: `127.0.0.1` → `mysql`. Haz lo mismo en `.env.test.local` cuando llegues al paso 4.
+
+**3. La base de datos containerizada nace vacía.** `MYSQL_DATABASE: ddd_symfony` en `compose.yaml` crea la base al arrancar, pero sin ninguna tabla — y sin los datos que tenías en tu MySQL local, que no viaja automáticamente a un contenedor nuevo. Levanta los servicios y vuelve a migrar, esta vez dentro del contenedor:
+
+```bash
+docker compose up -d
+
+docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+```
+
+**4. La base de datos de test necesita el mismo tratamiento — a mano.** `MYSQL_DATABASE` solo crea una base de datos, y la tuya se llama `ddd_symfony_test`. Créala directamente dentro del contenedor de MySQL:
+
+```bash
+docker compose exec mysql mysql -uroot -ppassword \
+  -e "CREATE DATABASE ddd_symfony_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+Actualiza `.env.test.local` igual que en el paso 2 (host `mysql` en vez de `127.0.0.1`) y migra el esquema de test:
+
+```bash
+docker compose exec php php bin/console doctrine:migrations:migrate --env=test --no-interaction
+```
+
+A partir de aquí, cualquier comando del proyecto —`phpunit`, `bin/console`, lo que sea— corre **dentro** del contenedor `php`, con `docker compose exec php ...` delante. Si vuelves a ejecutar `php bin/phpunit tests/Integration` directamente en tu terminal (fuera de Docker), va a intentar resolver el host `mysql` y fallar, porque ese nombre solo existe dentro de la red que crea `compose.yaml`.
+
+> **✏️ Ejercicio —** Los datos de prueba que hayas creado a mano contra tu MySQL local (usuarios de pruebas manuales, no los que insertan los tests automatizados) no se transfieren solos. Si quisieras conservarlos, la herramienta es `mysqldump`: exporta con `mysqldump -u root -p ddd_symfony > backup.sql` desde tu MySQL local, y carga el resultado dentro del contenedor con `docker compose exec -T mysql mysql -uroot -ppassword ddd_symfony < backup.sql`. Para este proyecto no hace falta —son datos de prueba— pero es exactamente el procedimiento que usarías en un caso real.
 
 ### CI/CD
 

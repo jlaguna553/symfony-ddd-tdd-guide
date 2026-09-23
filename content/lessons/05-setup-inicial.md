@@ -75,22 +75,43 @@ Composer version 2.7.x
 
 Si no aparece, instálalo desde [getcomposer.org/download](https://getcomposer.org/download/) — el sitio oficial trae un script de instalación de una línea para Linux/macOS y un instalador gráfico para Windows.
 
-**MySQL.** Necesitas un servidor MySQL corriendo y accesible, no solo el cliente de línea de comandos.
+**MySQL.** Necesitas un servidor MySQL corriendo y accesible, no solo el cliente de línea de comandos. Primero confirma si ya lo tienes:
 
 ```bash
 mysql --version
 mysqladmin ping
 ```
 
-La primera confirma que el *cliente* `mysql` está instalado; la segunda confirma que hay un *servidor* escuchando y respondiendo (debería imprimir `mysqld is alive`). Puedes tener el cliente instalado y aun así no tener ningún servidor corriendo — son dos cosas distintas y ambas hacen falta.
+La primera confirma que el *cliente* `mysql` está instalado; la segunda confirma que hay un *servidor* escuchando y respondiendo (debería imprimir `mysqld is alive`). Puedes tener el cliente instalado y aun así no tener ningún servidor corriendo — son dos cosas distintas y ambas hacen falta. Si `mysqladmin ping` falla, instala el servidor según tu sistema:
 
-Si no tienes MySQL instalado localmente, no hace falta que lo instales todavía: en la lección de [DevOps](/lecciones/devops-docker-ci) vas a levantar MySQL con Docker Compose. Si prefieres adelantar eso ahora en vez de instalar MySQL directamente en tu máquina, puedes correr únicamente el servicio de base de datos:
+**macOS (Homebrew):**
 
 ```bash
-docker run --name ddd-mysql -e MYSQL_ROOT_PASSWORD=password -p 3306:3306 -d mysql:8
+brew install mysql
+brew services start mysql
 ```
 
-Cualquiera de los dos caminos —MySQL instalado localmente o corriendo en un contenedor— te deja en el mismo punto: un servidor accesible en `127.0.0.1:3306`, que es lo único que el resto de esta lección necesita.
+**Ubuntu/Debian:**
+
+```bash
+sudo apt update
+sudo apt install mysql-server
+sudo systemctl enable --now mysql
+```
+
+Un detalle propio de Ubuntu/Debian: el usuario `root` de MySQL viene configurado para autenticarse por socket Unix, no por contraseña. La primera vez, entra con `sudo mysql` en vez de `mysql -u root -p`. Una vez dentro, puedes crear un usuario con contraseña para el resto de la guía:
+
+```sql
+CREATE USER 'root'@'127.0.0.1' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1';
+FLUSH PRIVILEGES;
+```
+
+Con eso, `mysql -u root -p` (contraseña `password`) y la `DATABASE_URL` de más abajo funcionan tal cual.
+
+**Windows:** descarga el instalador desde [dev.mysql.com/downloads/installer](https://dev.mysql.com/downloads/installer/) — el asistente gráfico te deja fijar la contraseña de `root` durante la instalación, así que no necesitas el paso anterior.
+
+Vuelve a correr `mysqladmin ping` para confirmar que el servidor ya responde antes de seguir.
 
 ### Crear Symfony desde cero
 
@@ -172,8 +193,6 @@ Si prefieres no entrar a un modo interactivo, el mismo resultado se logra en una
 mysql -u root -p -e "CREATE DATABASE ddd_symfony CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
-(Si levantaste MySQL con el `docker run` de la sección anterior, la contraseña de `root` es `password` y no necesitas el flag `-p` interactivo: `mysql -h 127.0.0.1 -u root -ppassword -e "..."`.)
-
 Un cliente gráfico (TablePlus, DBeaver, MySQL Workbench, la extensión de MySQL de tu editor) funciona exactamente igual y es una alternativa perfectamente válida si te sientes más cómodo ahí — lo único que importa es que la base de datos `ddd_symfony` termine existiendo.
 
 En `.env`:
@@ -191,6 +210,8 @@ php bin/console doctrine:query:sql "SELECT 1"
 ```
 
 Si esto devuelve un resultado en vez de un error de conexión, Symfony y MySQL ya se están hablando — puedes seguir.
+
+Guarda mentalmente cómo quedó esta conexión (usuario, contraseña, `127.0.0.1:3306`): vas a necesitarla tal cual en la lección de [Estrategia de Testing](/lecciones/estrategia-de-testing) para la base de datos de test, y más adelante, en la lección de [DevOps](/lecciones/devops-docker-ci), vas a mover este mismo MySQL a un contenedor Docker — ahí retomamos exactamente este punto.
 
 ### Crear estructura DDD
 
