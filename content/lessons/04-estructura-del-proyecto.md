@@ -38,6 +38,7 @@ ddd-symfony
           UserRepository.php
         Exception
           UserNotFound.php
+          UserEmailAlreadyExists.php
       Application
         Command
           CreateUser

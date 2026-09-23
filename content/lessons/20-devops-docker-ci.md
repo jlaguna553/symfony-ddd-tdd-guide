@@ -93,6 +93,60 @@ php bin/phpunit tests/Integration
 php bin/phpunit tests/Functional
 ```
 
+Ese mismo pipeline, como workflow de GitHub Actions real:
+
+```yaml
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: ddd_symfony_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+
+      - run: composer install --no-interaction --prefer-dist
+
+      - run: php bin/console lint:yaml config
+      - run: php bin/console lint:container
+
+      - run: php bin/phpunit tests/Unit
+      - run: php bin/phpunit tests/Application
+
+      - name: Integration + Functional
+        env:
+          APP_ENV: test
+          DATABASE_URL: mysql://root@127.0.0.1:3306/ddd_symfony_test?serverVersion=8.0
+        run: |
+          php bin/console doctrine:migrations:migrate --no-interaction
+          php bin/phpunit tests/Integration
+          php bin/phpunit tests/Functional
+```
+
+Guárdalo como `.github/workflows/ci.yml`. El servicio `mysql` es lo que hace posible correr Integration y Functional Tests en el runner de GitHub sin instalar MySQL manualmente — es la misma DB de test exclusiva de la lección de [Estrategia de Testing](/lecciones/estrategia-de-testing), solo que ahora vive dentro del pipeline en vez de tu máquina.
+
 ### PHPStan
 
 ```bash
@@ -121,7 +175,37 @@ Domain       NO → Application
 Application  NO → Infrastructure
 ```
 
-Esto automatiza una regla arquitectónica. En vez de decir "Por favor, no importes Doctrine aquí", el CI puede decir `ARCHITECTURE VIOLATION`. Mucho más efectivo.
+Esto se traduce a un archivo de configuración real, `deptrac.yaml`:
+
+```yaml
+parameters:
+  paths:
+    - ./src
+
+  layers:
+    - name: Domain
+      collectors:
+        - type: directory
+          value: src/User/Domain/.*
+    - name: Application
+      collectors:
+        - type: directory
+          value: src/User/Application/.*
+    - name: Infrastructure
+      collectors:
+        - type: directory
+          value: src/User/Infrastructure/.*
+
+  ruleset:
+    Domain: []
+    Application:
+      - Domain
+    Infrastructure:
+      - Domain
+      - Application
+```
+
+El `ruleset` se lee "esta capa puede depender de estas otras": `Domain` no puede depender de nada (lista vacía), `Application` solo de `Domain`, e `Infrastructure` de ambas. Corre `vendor/bin/deptrac analyse` y agrégalo como un paso más en el CI de arriba — si algún día un import de `Doctrine\ORM` se cuela dentro de `src/User/Domain/`, este comando falla con un `ARCHITECTURE VIOLATION` explícito, en vez de depender de que alguien lo note en un code review.
 
 ### Architecture as Code
 

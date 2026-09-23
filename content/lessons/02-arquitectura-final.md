@@ -30,6 +30,8 @@ Doctrine
 MySQL
 ```
 
+Fíjate en la flecha invertida: `Infrastructure Repository` apunta *hacia arriba*, hacia la interfaz del dominio, no al revés. Este es el nombre técnico de lo que venimos haciendo: **Dependency Inversion Principle** (la "D" de SOLID). La regla no es "el código de bajo nivel no debe tener dependencias" — Doctrine sigue siendo una dependencia real. La regla es que la *interfaz* la define quien la necesita (el dominio), no quien la implementa (la infraestructura). Eso es lo que se "invierte": normalmente pensarías que el módulo de alto nivel depende del de bajo nivel; aquí es al revés, el de bajo nivel depende de una abstracción que pertenece al de alto nivel.
+
 Una forma de visualizar todo el sistema junto — controllers, commands/queries, handlers, el dominio con su entidad y value objects, y cómo la infraestructura implementa el puerto de persistencia hasta llegar a MySQL:
 
 ```architecture

@@ -29,44 +29,48 @@ La idea: muchos tests rápidos, pocos tests caros.
 
 ### Test Matrix
 
-**Domain**
-- Email válido
-- Email inválido
-- Normalización
-- UserId válido
-- UserId inválido
-- Crear User
-- Nombre vacío
-- Actualizar User
-- Nombre vacío al actualizar
+Esta es la lista completa de casos que un CRUD "bien probado" debería cubrir. Los que ya escribiste con código real en lecciones anteriores están marcados con ✓; el resto quedó como ejercicio explícito en su lección correspondiente.
 
-**Application**
-- Create
-- Duplicate email
-- Get
-- Not found
-- List
-- Update
-- Update not found
-- Update duplicate email
-- Delete
-- Delete not found
+**Domain** — [Capa de Dominio](/lecciones/capa-de-dominio)
+- Email válido ✓
+- Email inválido ✓
+- Normalización ✓
+- UserId válido ✓
+- UserId inválido ✓
+- Crear User ✓
+- Nombre vacío ✓
+- Actualizar User ✓
+- Nombre vacío al actualizar ✓
 
-**Integration**
-- Persist
-- Reload
+**Application** — [Capa de Aplicación](/lecciones/capa-de-aplicacion)
+- Create ✓
+- Duplicate email ✓
+- Get ✓
+- Not found ✓
+- List ✓
+- Update (ejercicio guiado)
+- Update not found (ejercicio guiado)
+- Update duplicate email (ejercicio guiado)
+- Delete (ejercicio guiado)
+- Delete not found (ejercicio guiado)
+
+**Integration** — [Estrategia de Testing](/lecciones/estrategia-de-testing)
+- Persist ✓
+- Reload (`clear()`) ✓
 - Find by ID
 - Find by email
 - Find all
 - Update
 - Delete
-- Unique constraint
+- Unique constraint (ejercicio en [Integridad y concurrencia](/lecciones/integridad-y-concurrencia))
 - Custom DBAL types
 
-**Functional**
-- POST 201 / 400 / 409
-- GET 200 / 404 / invalid ID
-- PUT 204 / 404 / 409
-- DELETE 204 / 404
+**Functional** — [Controllers](/lecciones/controllers-http) y [Functional Tests](/lecciones/functional-tests)
+- POST 201 ✓ / 400 (ejercicio) / 409 ✓
+- GET 200 ✓ / 404 ✓ / invalid ID ✓
+- PUT 204 ✓ / 404 ✓ / 409 (ejercicio)
+- DELETE 204 ✓ / 404 ✓
 
-Si en algún momento un reviewer te pregunta "¿cómo sabes que está bien probado?", esta matriz es la respuesta.
+> **✏️ Ejercicio —** Los ítems de Integration sin marcar (`find by email`, `find all`, `update`, `delete`, `custom DBAL types`) siguen el mismo `KernelTestCase` que ya tienes en `DoctrineUserRepositoryTest` — solo cambia qué método del repositorio ejercitas y qué afirmas después. Complétalos ahora; es la forma más rápida de comprobar que de verdad entendiste por qué el `clear()` importaba.
+
+Si en algún momento un reviewer te pregunta "¿cómo sabes que está bien probado?", esta matriz — completa — es la respuesta.

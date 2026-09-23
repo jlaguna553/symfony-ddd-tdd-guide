@@ -16,6 +16,12 @@ newFiles:
   - "src/User/Infrastructure/Persistence/Doctrine/Repository/DoctrineUserRepository.php"
 ---
 
+### ¿Por qué necesitamos tipos DBAL personalizados?
+
+Doctrine sabe convertir columnas SQL en tipos nativos de PHP: `VARCHAR` en `string`, `INT` en `int`. Lo que no sabe, de fábrica, es convertir un `VARCHAR` en un objeto `Email` o `UserId` — esos tipos no existen para Doctrine, son conceptos de **nuestro** dominio.
+
+Sin un tipo personalizado, tendrías dos caminos malos: mapear `email` como un `string` plano en la entidad (y entonces `User` ya no usaría el Value Object `Email` con su validación, perdiendo justo lo que construimos en la lección de dominio), o convertir manualmente en el repositorio cada vez que lees o escribes (código repetido y fácil de olvidar en un lugar). Un `Type` de Doctrine resuelve esto una sola vez: le enseña a Doctrine a hidratar `Email`/`UserId` automáticamente en ambas direcciones, para que la entidad de dominio nunca necesite saber que existe una fila de base de datos detrás.
+
 ### Doctrine Custom Type: UserId
 
 `src/User/Infrastructure/Persistence/Doctrine/Type/UserIdType.php`

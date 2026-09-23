@@ -13,13 +13,6 @@ newFiles:
   - ".env.test.local"
   - "config/packages/test/doctrine.yaml"
   - "tests/Integration/User/Infrastructure/Persistence/Doctrine/DoctrineUserRepositoryTest.php"
-  - "tests/Unit/User/Domain/ValueObject/UserIdTest.php"
-  - "tests/Unit/User/Domain/Entity/UserTest.php"
-  - "tests/Application/User/Command/CreateUser/CreateUserHandlerTest.php"
-  - "tests/Application/User/Query/GetUser/GetUserHandlerTest.php"
-  - "tests/Application/User/Query/ListUsers/ListUsersHandlerTest.php"
-  - "tests/Application/User/Command/UpdateUser/UpdateUserHandlerTest.php"
-  - "tests/Application/User/Command/DeleteUser/DeleteUserHandlerTest.php"
 ---
 
 ### Punto crítico: Integration Tests reales
@@ -32,6 +25,12 @@ Symfony Kernel
 Doctrine
 MySQL real
 ```
+
+### Una nota sobre TDD aquí
+
+En las lecciones de Dominio y Aplicación, el test siempre nació **antes** que el código: lo corrías, veías RED, y solo entonces escribías la implementación. En esta lección el orden se invierte un poco — el mapping XML, los tipos DBAL y `DoctrineUserRepository` ya quedaron construidos en la lección anterior, así que cuando llegues al Integration Test más abajo, es probable que pase en verde a la primera.
+
+Eso no es una traición al método: para un test de integración, el RED honesto no es "la clase no existe" sino "la infraestructura no está bien conectada" — mapping incorrecto, tipo DBAL mal registrado, columna con el nombre equivocado. Si quieres ver ese RED con tus propios ojos, hazlo ahora: comenta temporalmente la línea `<field name="email" ...>` en `User.orm.xml`, corre el test de esta lección, y confirma que falla con un error de Doctrine. Después descomenta la línea y vuelve a correrlo — ese es tu GREEN real para esta capa.
 
 ### Crear base de datos de test
 
@@ -239,7 +238,7 @@ Para nuestro proyecto educativo: **DB exclusiva + limpieza controlada** es sufic
 php bin/phpunit tests/Unit
 ```
 
-Deben cubrir: Email, UserId, User. No deben requerir: MySQL, Symfony Kernel, Doctrine.
+Los que ya escribiste en la lección de [Capa de Dominio](/lecciones/capa-de-dominio): Email, UserId, User. No deben requerir: MySQL, Symfony Kernel, Doctrine.
 
 ### Tests Application
 
@@ -247,7 +246,7 @@ Deben cubrir: Email, UserId, User. No deben requerir: MySQL, Symfony Kernel, Doc
 php bin/phpunit tests/Application
 ```
 
-Deben cubrir: CreateUserHandler, GetUserHandler, ListUsersHandler, UpdateUserHandler, DeleteUserHandler. Usan: InMemoryUserRepository.
+Los que ya escribiste en la lección de [Capa de Aplicación](/lecciones/capa-de-aplicacion): CreateUserHandler, GetUserHandler, ListUsersHandler, UpdateUserHandler, DeleteUserHandler. Usan el Fake `InMemoryUserRepository`, nunca Doctrine.
 
 ### Tests Integration
 
