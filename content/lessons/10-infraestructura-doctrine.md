@@ -1,10 +1,11 @@
 ---
 slug: "infraestructura-doctrine"
 order: 10
-module: "persistencia"
-title: "Infraestructura: Persistencia con Doctrine"
-summary: "Tipos DBAL personalizados para UserId y Email, mapping XML, el adaptador DoctrineUserRepository y la inyección de dependencias."
+module: "infraestructura"
+title: "Persistencia con Doctrine"
+summary: "Empieza la Capa de Infraestructura: tipos DBAL personalizados para UserId y Email, mapping XML, el adaptador DoctrineUserRepository y la inyección de dependencias."
 objectives:
+  - "Ubicar qué entra dentro de Infrastructure y qué no, antes de escribir la primera línea."
   - "Crear tipos DBAL personalizados para que Doctrine hidrate directamente Value Objects."
   - "Mapear la entidad User con XML sin anotaciones dentro de la clase de dominio."
   - "Implementar DoctrineUserRepository como adaptador del puerto UserRepository."
@@ -15,6 +16,38 @@ newFiles:
   - "src/User/Infrastructure/Persistence/Doctrine/Mapping/User.orm.xml"
   - "src/User/Infrastructure/Persistence/Doctrine/Repository/DoctrineUserRepository.php"
 ---
+
+### Dónde empieza esta capa y qué engloba
+
+Domain y Application quedaron completos sin saber que Symfony, Doctrine o MySQL existen. Esta es la tercera y última capa — **Infrastructure** — y es, literalmente, la carpeta `src/User/Infrastructure/` del [plano del proyecto](/lecciones/estructura-del-proyecto):
+
+```tree
+!files
+Infrastructure
+  Http
+    Controller
+    Exception
+  Persistence
+    Doctrine
+      Mapping
+      Repository
+      Type
+```
+
+Dos responsabilidades, no una: **Persistence** (cómo hablamos con MySQL a través de Doctrine) y **Http** (cómo hablamos con el mundo exterior a través de peticiones). Ambas son "detalles" en el sentido de la lección de [arquitectura final](/lecciones/arquitectura-final) — el dominio no sabe que existen, pero alguien tiene que implementarlas para que la aplicación sirva de algo.
+
+Este módulo recorre ambas mitades en orden — primero Persistence, después Http — y en cada una construimos la pieza y después el test que demuestra que funciona contra el sistema real (MySQL o un servidor HTTP), no contra un doble de prueba:
+
+```flow
+Persistencia con Doctrine
+Migraciones
+Estrategia de Testing (Integration Tests)
+Controllers HTTP
+Manejo de errores
+Functional Tests
+```
+
+Empezamos por Persistence, porque sin ella no hay nada que un Controller pueda exponer todavía.
 
 ### ¿Por qué necesitamos tipos DBAL personalizados?
 

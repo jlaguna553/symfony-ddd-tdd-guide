@@ -1,7 +1,7 @@
 ---
 slug: "controllers-http"
 order: 13
-module: "http"
+module: "infraestructura"
 title: "Capa HTTP: Controllers"
 summary: "Los cinco controllers del CRUD, delgados a propósito: solo traducen HTTP a Application y de vuelta. Empezamos con un test funcional que falla antes de que el primer controller exista."
 objectives:
@@ -17,6 +17,8 @@ newFiles:
   - "src/User/Infrastructure/Http/Controller/UpdateUserController.php"
   - "src/User/Infrastructure/Http/Controller/DeleteUserController.php"
 ---
+
+Seguimos dentro de la Capa de Infraestructura que empezó en [Persistencia con Doctrine](/lecciones/infraestructura-doctrine) — pero cambiamos de mitad. Ya cerramos `Infrastructure/Persistence/`; ahora toca `Infrastructure/Http/`: los Controllers que traducen peticiones HTTP en Commands y Queries para la capa de Aplicación.
 
 ### Contrato HTTP al que apuntamos
 

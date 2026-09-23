@@ -1,7 +1,7 @@
 ---
 slug: "manejo-de-errores"
 order: 14
-module: "http"
+module: "infraestructura"
 title: "Manejo de errores"
 summary: "Un ApiExceptionSubscriber centralizado que traduce excepciones de dominio a un contrato HTTP de errores estable."
 objectives:

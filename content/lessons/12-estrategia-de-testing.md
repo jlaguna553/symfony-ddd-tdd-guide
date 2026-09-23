@@ -1,7 +1,7 @@
 ---
 slug: "estrategia-de-testing"
 order: 12
-module: "testing"
+module: "infraestructura"
 title: "Estrategia de Testing"
 summary: "Por qué un InMemory Repository no basta, cómo aislar una base de datos exclusiva para tests y el primer Integration Test real contra MySQL."
 objectives:

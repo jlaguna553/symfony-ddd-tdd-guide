@@ -81,7 +81,7 @@ export default function HomePage() {
           El recorrido, módulo por módulo
         </h2>
         <p className="mx-auto mt-2 max-w-xl text-center text-sm text-slate-500 dark:text-slate-400">
-          31 lecciones agrupadas en 11 módulos. El proyecto va creciendo lección a lección: cada una
+          31 lecciones agrupadas en 9 módulos. El proyecto va creciendo lección a lección: cada una
           muestra qué archivos se agregan al código.
         </p>
 

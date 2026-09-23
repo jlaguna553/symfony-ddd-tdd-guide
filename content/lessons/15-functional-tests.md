@@ -1,7 +1,7 @@
 ---
 slug: "functional-tests"
 order: 15
-module: "http"
+module: "infraestructura"
 title: "Functional Tests"
 summary: "Completamos la batería de Functional Tests: email duplicado, la solución al ejercicio de GET, y los tests de update y delete que faltaban."
 objectives:
@@ -306,3 +306,5 @@ REFACTOR
 ```
 
 Así también el contrato HTTP quedó guiado por tests, igual que el dominio y la aplicación.
+
+Con esto se cierra la Capa de Infraestructura completa: Persistence (Doctrine, migraciones, Integration Tests) y Http (Controllers, errores, Functional Tests). Las tres capas de la arquitectura —Domain, Application e Infrastructure— están construidas y probadas. Lo que sigue ya no es "más piezas", sino cómo ese CRUD se comporta bajo concurrencia y cómo evolucionaría en producción.

@@ -3,9 +3,7 @@ export type ModuleId =
   | "arranque"
   | "dominio"
   | "aplicacion"
-  | "persistencia"
-  | "testing"
-  | "http"
+  | "infraestructura"
   | "concurrencia"
   | "avanzada"
   | "operacion"
@@ -39,38 +37,28 @@ export const MODULES: ModuleMeta[] = [
     description: "Commands, Queries, Handlers, DTOs y el repositorio en memoria para probarlos rápido.",
   },
   {
-    id: "persistencia",
-    title: "5. Persistencia con Doctrine",
-    description: "Tipos DBAL, mapping XML, el adaptador Doctrine y las migraciones.",
-  },
-  {
-    id: "testing",
-    title: "6. Estrategia de testing",
-    description: "Por qué necesitamos una base de datos de test separada y cómo aislar los Integration Tests.",
-  },
-  {
-    id: "http",
-    title: "7. HTTP y contratos",
-    description: "Controllers delgados, el contrato HTTP, manejo centralizado de errores y Functional Tests.",
+    id: "infraestructura",
+    title: "5. Capa de infraestructura",
+    description: "Todo lo que vive bajo Infrastructure/: el adaptador Doctrine y sus migraciones, los Controllers HTTP y el manejo de errores — y los Integration/Functional Tests que prueban que cada uno funciona contra sistemas reales.",
   },
   {
     id: "concurrencia",
-    title: "8. Concurrencia y evolución",
+    title: "6. Concurrencia y evolución",
     description: "Race conditions, transacciones, paginación, filtrado y ordenamiento.",
   },
   {
     id: "avanzada",
-    title: "9. Arquitectura avanzada",
+    title: "7. Arquitectura avanzada",
     description: "CQRS, Domain Events, Outbox y las preocupaciones transversales de un sistema real.",
   },
   {
     id: "operacion",
-    title: "10. Operación y CI/CD",
+    title: "8. Operación y CI/CD",
     description: "Docker, pipelines, PHPStan, Deptrac y la pirámide de testing como referencia.",
   },
   {
     id: "cierre",
-    title: "11. Cierre y dominio del tema",
+    title: "9. Cierre y dominio del tema",
     description: "Flujos completos, preguntas de entrevista y el resumen mental para el próximo módulo.",
   },
 ];

@@ -1,6 +1,6 @@
 # Symfony + DDD + TDD — Guía interactiva
 
-Sitio Next.js que convierte la guía `guide.md` en 31 lecciones navegables, agrupadas en 11 módulos, con:
+Sitio Next.js que convierte la guía `guide.md` en 31 lecciones navegables, agrupadas en 9 módulos, con:
 
 - Diagramas de arquitectura, flujos, árboles de carpetas y comparaciones renderizados en HTML/SVG (no ASCII art) a partir de bloques de código con lenguajes especiales (`flow`, `tree`, `compare`, `pyramid`, `architecture`) — ver `src/lib/diagrams.ts` y `src/components/CodeRenderer.tsx`.
 - Un panel "Así va el proyecto hasta esta lección" que muestra el árbol de archivos acumulado del proyecto Symfony, resaltando qué archivos se agregan en cada lección (`src/lib/project-tree.ts`, `src/components/ProjectExplorer.tsx`). Los archivos que introduce cada lección se declaran en el frontmatter `newFiles` de `content/lessons/*.md`.

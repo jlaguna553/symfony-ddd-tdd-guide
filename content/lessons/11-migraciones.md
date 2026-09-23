@@ -1,7 +1,7 @@
 ---
 slug: "migraciones"
 order: 11
-module: "persistencia"
+module: "infraestructura"
 title: "Migraciones"
 summary: "Generamos y ejecutamos la migración que crea la tabla users, con su constraint UNIQUE sobre email — y cómo revertirla si algo sale mal."
 objectives:
