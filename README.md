@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Symfony + DDD + TDD — Guía interactiva
 
-## Getting Started
+Sitio Next.js que convierte la guía `guide.md` en 31 lecciones navegables, agrupadas en 11 módulos, con:
 
-First, run the development server:
+- Diagramas de arquitectura, flujos, árboles de carpetas y comparaciones renderizados en HTML/SVG (no ASCII art) a partir de bloques de código con lenguajes especiales (`flow`, `tree`, `compare`, `pyramid`, `architecture`) — ver `src/lib/diagrams.ts` y `src/components/CodeRenderer.tsx`.
+- Un panel "Así va el proyecto hasta esta lección" que muestra el árbol de archivos acumulado del proyecto Symfony, resaltando qué archivos se agregan en cada lección (`src/lib/project-tree.ts`, `src/components/ProjectExplorer.tsx`). Los archivos que introduce cada lección se declaran en el frontmatter `newFiles` de `content/lessons/*.md`.
+- Progreso de lectura persistido en `localStorage` (checklist por lección + barra de progreso global).
+- Tema claro/oscuro con toggle manual y sin flash inicial.
+
+## Desarrollo local
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build de producción
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm run start
+```
 
-## Learn More
+## Editar contenido
 
-To learn more about Next.js, take a look at the following resources:
+Cada lección es un archivo Markdown en `content/lessons/NN-slug.md` con frontmatter:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```yaml
+---
+slug: "capa-de-dominio"
+order: 7
+module: "dominio"       # debe existir en src/lib/modules.ts
+title: "Capa de Dominio"
+summary: "..."
+objectives:
+  - "..."
+newFiles:                # opcional: archivos que esta lección agrega al proyecto
+  - "src/User/Domain/ValueObject/Email.php"
+---
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Bloques de diagrama disponibles dentro del Markdown:
 
-## Deploy on Vercel
+- ` ```flow ` — pasos verticales conectados por flechas. Prefija una línea con `^` para invertir esa flecha (útil para representar puerto/adaptador).
+- ` ```tree ` — árbol jerárquico por indentación (2 espacios por nivel). Primera línea opcional `!files` (iconos de carpeta/archivo) o `!flow` (cajas simples, por defecto).
+- ` ```compare ` — columnas lado a lado, separadas por una línea `---`; cada columna admite un título con `# Título`.
+- ` ```pyramid ` — pirámide de testing fija (sin contenido).
+- ` ```architecture ` — mapa de arquitectura completo fijo (sin contenido).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Desplegar en Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Sube este directorio (`site/`) a un repositorio Git.
+2. En Vercel: **New Project** → importa el repo → Framework se detecta automáticamente como **Next.js**.
+3. Si el repo contiene más carpetas además de `site/`, configura **Root Directory** = `site` en la configuración del proyecto de Vercel.
+4. Deploy — no requiere variables de entorno ni configuración adicional.
+
+También puedes desplegar desde la CLI:
+
+```bash
+npm install -g vercel
+vercel
+```
